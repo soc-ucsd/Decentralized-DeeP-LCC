@@ -128,7 +128,7 @@ e           = zeros(1,total_time_step);         % external input
 i_data              = 1;    % id of the pre-collected data
 load(['_data\trajectory_data_collection\data',data_str,'_',num2str(i_data),'_noiseLevel_',num2str(acel_noise),'.mat']);
 
-%Seperate the pre-collected data for subsystems
+%Separate the pre-collected data for subsystems
 SU1 = [1, 0];
 SUp1_blk = SU1;
 SUf1_blk = SU1;
