@@ -5,9 +5,9 @@ In this project, we present a decentralized DeeP-LCC for control of the Connecte
 DeeP-LCC is a data-driven predictive control strategy for CAVs in mixed traffic, where human-driven vehicles(HDVs) also exist. It aims to deal with unknown nonlinear car-following behaviors of HDVs and has been validated in real world small-
 scale experiments. However, due to the centralized setting, it is non-trivial for a central unit to collect data and compute control inputs within the sampling period when the scale of the mixed traffic system becomes large.  
 
-To address this problem, we developed the decentralized DeeP − LCC for CAVs in mixed traffic flow. The entire mixed traffic system could be naturally divided into n subsystems, each representing a small mixed traffic system with one CAV *i* and its following *m<sub>i* HDVs. Each CAV’s decentralized controller only uses information from *its corresponding subsystem, the preceding vehicle and the head vehicle* to compute its individual input and mitigate the traffic waves. Coupling constraints between subsystems are modeled as *disturbance* and handled through robust optimization by estimating the bound of the disturbance.
+To address this problem, we developed the decentralized DeeP − LCC for CAVs in mixed traffic flow. The entire mixed traffic system could be naturally divided into n subsystems, each representing a small mixed traffic system with one CAV *i* and its following *m<sub>i* HDVs. Each CAV’s decentralized controller only uses information from **its corresponding subsystem, the preceding vehicle and the head vehicle** to compute its individual input and mitigate the traffic waves. Coupling constraints between subsystems are modeled as **disturbance** and handled through robust optimization by estimating the bound of the disturbance.
 
-<img src="docs/img/Mixed_Traffic_System.png" align="center" width="100%" title = "Mixed Traffic System"/>
+<img src="docs/img/Mixed_Traffic_System.png" align="center" width="100%" title="Mixed Traffic System"/>
 
 Related projects: 
 
