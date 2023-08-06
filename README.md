@@ -1,4 +1,4 @@
-#Decentralized DeeP-LCC
+# Decentralized DeeP-LCC
 In this project, we present a decentralized DeeP-LCC for control of the Connected and Autonomous Vehicles(CAVs) in mixed traffic. This repository contains the MATLAB scripts for reproducing the experiments in our paper and for further development: (Add the paper)
 
 ## Decentralized Data-EnablEd Predictive Leading Cruise Control(Decentralized DeeP-LCC)
@@ -15,6 +15,7 @@ Related projects:
 2. [Distributed DeeP-LCC](https://github.com/wangjw18/Distributed-DeeP-LCC)
 3. [Mixed-traffic](https://github.com/soc-ucsd/mixed-traffic)
 4. [Leading Cruise Control (LCC)](https://github.com/soc-ucsd/LCC)
+5. [Experimental Validation of DeeP-LCC for Dissipating Stop-and-Go Waves in Mixed Traffic](https://www.researchgate.net/profile/Yang-Zheng-24/publication/359865166_Implementation_and_Experimental_Validation_of_Data-Driven_Predictive_Control_for_Dissipating_Stop-and-Go_Waves_in_Mixed_Traffic/links/62539f62cf60536e2353c4ab/Implementation-and-Experimental-Validation-of-Data-Driven-Predictive-Control-for-Dissipating-Stop-and-Go-Waves-in-Mixed-Traffic.pdf)
 
 ## Optimization Formulation
 
