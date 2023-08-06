@@ -23,7 +23,7 @@ warning off;
 % ----------------
 % whether traffic flow is mixed
 mix                 = 1;                    % 0. all HDVs; 1. there exist CAVs
-ID                  = [0,0,1,0,0,1,0,0];    % ID of vehicle types
+ID                  = [0,0,1,0,0,1,0,0,0,1,0,0,1,0,0,0];    % ID of vehicle types
                                             % 1: CAV  0: HDV
 pos_cav             = find(ID==1);          % position of CAVs
 n_vehicle           = length(ID);           % number of vehicles
@@ -31,7 +31,7 @@ n_cav               = length(pos_cav);      % number of CAVs
 n_hdv               = n_vehicle-n_cav;      % number of HDVs
 
 % Definition for Head vehicle trajectory
-head_vehicle_trajectory     = load('./_data/nedc_modified_v1.mat');
+head_vehicle_trajectory     = load('_data/nedc.mat');
 end_time                    = head_vehicle_trajectory.time(end);    % end time for the head vehicle trajectory
 head_vehicle_trajectory.vel = head_vehicle_trajectory.vel/3.6;
 
@@ -42,7 +42,7 @@ adaption_time               = 20;               % Time for the CAVs to adjust to
 total_time                  = initialization_time + adaption_time + end_time;  
 Tstep                       = 0.05;             % Time Step
 total_time_step             = round(total_time/Tstep);
-
+time_cpu_max = 0;
 % ----------------
 % HDV setup
 % ----------------
@@ -68,7 +68,7 @@ acel_noise          = 0.1;  % A white noise signal on HDV's acceleration
 % Parameter setup
 % ----------------
 % Type of the controller
-controller_type     = 1;    % 1. DeeP-LCC  2. MPC 
+controller_type     = 3;    % 1. cDeeP-LCC  2. dDeeP-LCC(Zero) 3. dDeeP-LCC(Const) 4. dDeeP-LCC(Time-vary) 
 % Initialize Equilibrium Setup (they might be updated in the control process)
 v_star              = 15;   % Equilibrium velocity
 s_star              = 20;   % Equilibrium spacing for CAV
@@ -96,6 +96,7 @@ measure_type        = 3;    % 1. Only the velocity errors of all the vehicles ar
                             % 2. All the states, including velocity error and spacing error are measurable;
                             % 3. Velocity error and spacing error of the CAVs are measurable, 
                             %    and the velocity error of the HDVs are measurable.
+time_all = zeros(total_time_step-initialization_time/Tstep, 1);
 % ----------------
 % Process parameters
 % ----------------
@@ -126,8 +127,7 @@ e           = zeros(1,total_time_step);         % external input
 % ----------------
 % load pre-collected data for DeeP-LCC
 i_data              = 1;    % id of the pre-collected data
-load(['_data\trajectory_data_collection\data',data_str,'_',num2str(i_data),'_noiseLevel_',num2str(acel_noise),'.mat']);
-
+load(['_data\trajectory_data_collection\data_','T=',num2str(T),'_',data_str,'_',num2str(i_data),'_noiseLevel_',num2str(acel_noise),'.mat']);
 
 % -------------------------------------------------------------------------
 %   Simulation
@@ -187,24 +187,79 @@ for k = initialization_time/Tstep:total_time_step-1
     S(k,2:end,3)    = acel;     
     
     if mix
+        [ui_ini, ei_ini, yi_ini] = select_traj_subsys(uini, eini, yini, ID);
+        % one-step implementation in receding horizon manner
+        u_opt = zeros(m_ctr, 1);
+        time_comp = zeros(m_ctr, 1);
+        pr = 0;
         switch controller_type
-            case 1  % calculate control input via DeeP-LCC     
-                if constraint_bool
-                    [u_opt,y_opt,pr] = qp_DeeP_LCC(Up,Yp,Uf,Yf,Ep,Ef,uini,yini,eini,Q,R,r(:,k:k+N-1),...
-                        lambda_g,lambda_y,u_limit,s_limit);
-                else
-                    [u_opt,y_opt,pr] = qp_DeeP_LCC(Up,Yp,Uf,Yf,Ep,Ef,uini,yini,eini,Q,R,r(:,k:k+N-1),...
-                        lambda_g,lambda_y);
+            case 1 %cDeeP-LCC
+                controller_str = 'centralized';
+                [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_Zero_Dual(Up,Yp,Uf,Yf,Ep,Ef,...
+                                                                         uini,yini,eini,weight_v, weight_s, weight_u,...
+                                                                         lambda_g,lambda_y,u_limit,s_limit);
+                u_opt = u_temp(1:m_ctr, 1);
+                time_all(k-Tini+1) = time_comp_temp;
+                if (time_comp_temp > time_cpu_max)
+                    time_cpu_max = time_comp_temp;
                 end
-            case 2  % calculate control input via MPC
-                if constraint_bool
-                    [u_opt,y_opt,pr] = qp_MPC(ID,Tstep,hdv_type,measure_type,v_star,uini,yini,N,Q,R,r(:,k:k+N-1),u_limit,s_limit);
-                else
-                    [u_opt,y_opt,pr] = qp_MPC(ID,Tstep,hdv_type,measure_type,v_star,uini,yini,N,Q,R,r(:,k:k+N-1));
+                if pr_temp == 1
+                   pr = 1;
+                end
+            case 2 %dDeeP-LCC(Zero)
+                controller_str = 'decen_Zero';
+                for i = 1:m_ctr
+                    [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_Zero_Dual(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
+                                                                         ui_ini{i},yi_ini{i},ei_ini{i},weight_v, weight_s, weight_u,...
+                                                                         lambda_g,lambda_y,u_limit,s_limit);
+                    u_opt(i) = u_temp(1);
+                    time_comp(i) = time_comp_temp;
+                    if pr_temp == 1
+                        pr = 1;
+                    end
+                end
+                time_temp1 = max(time_comp);
+                time_all(k-Tini+1) = time_temp1;
+                if (time_temp1 > time_cpu_max)
+                    time_cpu_max = time_temp1;
+                end
+            case 3 %dDeeP-LCC(Constant)
+                controller_str = 'decen_Const';
+                for i = 1:m_ctr
+                    [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_Const_Dual(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
+                                                                         ui_ini{i},yi_ini{i},ei_ini{i},weight_v, weight_s, weight_u,...
+                                                                         lambda_g,lambda_y,u_limit,s_limit);
+                    u_opt(i) = u_temp(1);
+                    time_comp(i) = time_comp_temp;
+                    if pr_temp == 1
+                        pr = 1;
+                    end
+                end
+                time_temp1 = max(time_comp);
+                time_all(k-Tini+1) = time_temp1;
+                if (time_temp1 > time_cpu_max)
+                    time_cpu_max = time_temp1;
+                end
+            case 4 %dDeeP-LCC(Time-vary)
+                controller_str = 'decen_TimeV';
+                for i = 1:m_ctr
+                    [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_TimeV_Dual(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
+                                                                         ui_ini{i},yi_ini{i},ei_ini{i},weight_v, weight_s, weight_u,...
+                                                                         lambda_g,lambda_y,u_limit,s_limit,Tstep);
+                    u_opt(i) = u_temp(1);
+                    time_comp(i) = time_comp_temp;
+                    if pr_temp == 1
+                        pr = 1;
+                    end
+                end
+                time_temp1 = max(time_comp);
+                time_all(k-Tini+1) = time_temp1;
+                if (time_temp1 > time_cpu_max)
+                    time_cpu_max = time_temp1;
                 end
         end
         % one-step implementation in receding horizon manner
-        u(:,k)                      = u_opt(1:m_ctr,1);
+        u(:,k) = u_opt;
         % update accleration for the CAV
         S(k,pos_cav+1,3)            = u(:,k);
         % judge whether AEB (automatic emergency braking, which is implemented in the function of 'HDV_dynamics') commands to brake
@@ -231,7 +286,8 @@ for k = initialization_time/Tstep:total_time_step-1
     % update equilibrium setup for the CAVs
     v_star          = mean(S(k-Tini+1:k,1,2));              % average velocity of the head vehicle among the past Tini time
     s_star          = acos(1-v_star/30*2)/pi*(35-5) + 5;    % use the OVM-type spacing policy to calculate the equilibrium spacing of the CAVs
-    
+    s_limit = [spacing_min,spacing_max]-s_star;
+
     % update past data in control process
     uini = u(:,k-Tini+1:k);
     % the output needs to be re-calculated since the equilibrium has been updated
@@ -241,6 +297,7 @@ for k = initialization_time/Tstep:total_time_step-1
     end 
     yini = y(:,k-Tini+1:k);
     eini = S(k-Tini+1:k,1,2) - v_star;
+    eini = eini';
     
     fprintf('Current simulation time: %.2f seconds (%.2f%%) \n',k*Tstep,(k*Tstep-initialization_time)/(total_time-initialization_time)*100);
   
@@ -255,22 +312,13 @@ fprintf('Simulation ends at %6.4f seconds \n', tsim);
 % -------------------------------------------------------------------------
 %   Results output
 %--------------------------------------------------------------------------
+trajectory_id = 1;
 if mix
-switch controller_type
-    case 1    
-        save(['..\_data\simulation_data\DeeP_LCC\nedc_simulation\simulation_data',data_str,'_',num2str(i_data),'_modified_v',num2str(trajectory_id),'_noiseLevel_',num2str(acel_noise),...
-            '_hdvType_',num2str(hdv_type),'_lambdaG_',num2str(lambda_g),'_lambdaY_',num2str(lambda_y),'.mat'],...
-            'hdv_type','acel_noise','S','T','Tini','N','ID','Tstep','v_star');
-    case 2
-        save(['..\_data\simulation_data\MPC\nedc_simulation\simulation_data',data_str,'_',num2str(i_data),'_modified_v',num2str(trajectory_id),'_noiseLevel_',num2str(acel_noise),...
-            '_hdvType_',num2str(hdv_type),'.mat'],...
-            'hdv_type','acel_noise','S','T','Tini','N','ID','Tstep','v_star');
-end
+    save(['_data\simulation_data\Decentralized_DeeP_LCC\NEDC_',controller_str,'_T=',num2str(T),'.mat'],...
+          'hdv_type','acel_noise','S','T','Tini','N','ID','Tstep','v_star','pr_status','time_cpu_max', 'time_all');           
 else
-    save(['..\_data\simulation_data\HDV\nedc_simulation\simulation_data',data_str,'_',num2str(i_data),'_modified_v',num2str(trajectory_id),'_noiseLevel_',num2str(acel_noise),...
-            '_hdvType_',num2str(hdv_type),'.mat'],...
-            'hdv_type','acel_noise','S','T','Tini','N','ID','Tstep','v_star');
-
+    save('_data\simulation_data\HDV\NEDC_HDV.mat',...
+         'hdv_type','acel_noise','S','T','Tini','N','ID','Tstep','v_star','pr_status','time_cpu_max', 'time_all');    
 end
 
 

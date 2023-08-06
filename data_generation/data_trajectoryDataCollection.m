@@ -5,7 +5,7 @@
 clc; close all; clear;
 addpath('_fcn');
 
-data_total_number = 100;
+data_total_number = 1;
 
 h_wait = waitbar(0,'please wait');
 
@@ -20,15 +20,10 @@ hdv_type        = 1;    % 1. OVM   2. IDM
 % Uncertainty for HDV behavior
 acel_noise      = 0.1;  % A white noise signal on HDV's original acceleration
 % Data set
-data_str        = '3';  % 1. random ovm  2. manual ovm  3. homogeneous ovm
+data_str        = '2';  % 1. random ovm  2. manual ovm  3. homogeneous ovm
 
-% Parameters in Simulation
-total_time       = 40;              % Total Simulation Time
 Tstep            = 0.05;            % Time Step
-total_time_step  = total_time/Tstep;
-
-% DeePC Formulation
-T       = 2000;      % length of data samples
+T       = 1500;      % length of data samples
 Tini    = 20;        % length of past data
 N       = 50;        % length of predicted horizon
 
@@ -45,7 +40,7 @@ lambda_y     = 1e3;      % penalty on ||sigma_y||_2^2 in objective
 % ------------------------------------------
 % Parameters in Mixed Traffic
 % ------------------------------------------
-ID          = [0,0,1,0,0,1,0,0];    % ID of vehicle types
+ID          = [0,0,1,0,0,1,0,0,0,1,0,0,1,0,0,0];    % ID of vehicle types
                                     % 1: CAV  0: HDV
 pos_cav     = find(ID==1);          % position of CAVs
 n_vehicle   = length(ID);           % number of vehicles
@@ -100,12 +95,23 @@ switch measure_type     % number of output variables
         p_ctr = n_vehicle + n_cav;
 end
 
+% ------------------
+%  size in Distributed DeeP-LCC
+% ------------------
+ni_vehicle = zeros(1,n_cav);    % number of vehicles in each LCC subsystem
+
+for i_cav = 1:n_cav-1
+    ni_vehicle(i_cav) = pos_cav(i_cav+1) - pos_cav(i_cav);
+end
+ni_vehicle(n_cav) = n_vehicle - pos_cav(end) + 1;
+
+
 % -------------------------------------------------------------------------
 %   Scenario initialization
 %-------------------------------------------------------------------------- 
 
 % There is one head vehicle at the very beginning
-S           = zeros(total_time_step,n_vehicle+1,3);
+S           = zeros(T,n_vehicle+1,3);
 S(1,1,1)    = 0;
 for i = 2 : n_vehicle+1
     S(1,i,1) = S(1,i-1,1) - hdv_parameter.s_star(i-1);
@@ -143,6 +149,7 @@ for k = 1:T-1
 end
 k = k+1;
 yd(:,k) = measure_mixed_traffic(S(k,2:end,2),S(k,:,1),ID,v_star,s_star,measure_type);
+[ui_d, ei_d, yi_d] = select_traj_subsys(ud, ed, yd, ID);
 
 % ------------------
 %  organize past data and future data
@@ -159,11 +166,34 @@ Y   = hankel_matrix(yd,Tini+N);
 Yp  = Y(1:Tini*p_ctr,:);
 Yf  = Y((Tini*p_ctr+1):end,:);
 
+Ui = cell(n_cav, 1);
+Uip = cell(n_cav, 1);
+Uif = cell(n_cav, 1);
+Ei = cell(n_cav, 1);
+Eip = cell(n_cav, 1);
+Eif = cell(n_cav, 1);
+Yi = cell(n_cav, 1);
+Yip = cell(n_cav, 1);
+Yif = cell(n_cav, 1);
+for i=1:n_cav
+    Ui{i}   = hankel_matrix(ui_d{i},Tini+N);
+    Uip{i}  = Ui{i}(1:Tini,:);
+    Uif{i}  = Ui{i}(Tini+1:end,:);
+    
+    Ei{i}   = hankel_matrix(ei_d{i},Tini+N);
+    Eip{i}  = Ei{i}(1:Tini,:);
+    Eif{i}  = Ei{i}(Tini+1:end,:);
+    
+    Yi{i}   = hankel_matrix(yi_d{i},Tini+N);
+    Yip{i}  = Yi{i}(1:Tini*(ni_vehicle(i)+1),:);
+    Yif{i}  = Yi{i}(Tini*(ni_vehicle(i)+1)+1:end,:);
+end
+
 str=['Processing...',num2str(i_data/data_total_number*100),'%'];
     waitbar(i_data/data_total_number,h_wait,str);
 
-save(['_data\trajectory_data_collection\data',num2str(data_str),'_',num2str(i_data),'_noiseLevel_',num2str(acel_noise),'.mat'],...
-    'hdv_type','acel_noise','Up','Yp','Uf','Yf','Ep','Ef','T','Tini','N','ID','Tstep','v_star');
+save(['_data\trajectory_data_collection\data_','T=',num2str(T),'_',data_str,'_',num2str(i_data),'_noiseLevel_',num2str(acel_noise),'.mat'],...
+    'hdv_type','acel_noise','Up','Yp','Uf','Yf','Ep','Ef','T','Tini','N','ID','Tstep','v_star','Uip','Uif','Eip','Eif','Yip','Yif');
 
 end
 

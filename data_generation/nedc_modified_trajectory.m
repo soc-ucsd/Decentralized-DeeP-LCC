@@ -32,4 +32,4 @@ for i = 1:total_time/Tstep
    end
 end
 plot(vel);
-save('..\_data\nedc_modified_v3.mat','time','vel');
+save('..\_data\nedc.mat','time','vel');
