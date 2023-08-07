@@ -10,7 +10,7 @@ To address this problem, we developed the decentralized DeeP − LCC for CAVs in
 <figure>
   <img
   src="docs/img/Mixed_Traffic_System.png" align="center" width="100%" title="Mixed Traffic System">
-  <figcaption text-align="center">Mixed Traffic System<figcaption>
+  <figcaption style=“text-align:center”>Mixed Traffic System<figcaption>
 <figure>
 
 Related projects: 
