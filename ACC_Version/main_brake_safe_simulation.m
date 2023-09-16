@@ -22,7 +22,7 @@ warning off;
 % ----------------
 % whether traffic flow is mixed
 mix                 = 1;                    % 0. all HDVs; 1. there exist CAVs
-ID                  = [0,0,1,0,0,1,0,0,0,1,0,0,1,0,0,0];    % ID of vehicle types
+ID                  = [0,0,0,1,0,0,0,0];    % ID of vehicle types
                                             % 1: CAV  0: HDV
 pos_cav             = find(ID==1);          % position of CAVs
 n_vehicle           = length(ID);           % number of vehicles
@@ -30,7 +30,7 @@ n_cav               = length(pos_cav);      % number of CAVs
 n_hdv               = n_vehicle-n_cav;      % number of HDVs
 
 % perturbation on the head vehicle
-per_type            = 1;    % 1. sinuoid perturbation 2. brake perturbation
+per_type            = 2;    % 1. sinuoid perturbation 2. brake perturbation
 sine_amp            = 5;    % amplitidue of sinuoid perturbation
 brake_amp           = 10;   % brake amplitude of brake perturbation
 
@@ -62,7 +62,7 @@ acel_noise          = 0.1;  % A white noise signal on HDV's acceleration
 % Parameter setup
 % ----------------
 % Type of the controller
-controller_type     = 4;    % 1. cDeeP-LCC  2. dDeeP-LCC(Zero) 3. dDeeP-LCC(Const) 4. dDeeP-LCC(Time-vary) 
+controller_type     = 2;    % 1. cDeeP-LCC  2. dDeeP-LCC(Zero) 3. dDeeP-LCC(Const) 4. dDeeP-LCC(Time-vary) 
 % Initialize Equilibrium Setup (they might be updated in the control process)
 v_star              = 15;   % Equilibrium velocity
 s_star              = 20;   % Equilibrium spacing for CAV
@@ -74,7 +74,7 @@ weight_v            = 1;    % weight coefficient for velocity error
 weight_s            = 0.5;  % weight coefficient for spacing error   
 weight_u            = 0.1;  % weight coefficient for control input
 % Setup in DeeP-LCC
-T                   = 700; % length of data samples
+T                   = 500; % length of data samples
 lambda_g            = 100;  % penalty on ||g||_2^2 in objective
 % lambda_g            = 100;  % penalty on ||g||_2^2 in objective
 lambda_y            = 1e4;  % penalty on ||sigma_y||_2^2 in objective
@@ -125,8 +125,9 @@ e           = zeros(1,total_time_step);         % external input
 % Pre-collected data
 % ----------------
 % load pre-collected data for DeeP-LCC
-i_data              = 1;    % id of the pre-collected data
-load(['_data\trajectory_data_collection\data_','T=',num2str(T),'_',data_str,'_',num2str(i_data),'_noiseLevel_',num2str(acel_noise),'.mat']);
+for indicator = 1:10
+i_data              = indicator;    % id of the pre-collected data
+load(['_data\trajectory_data_collection\data_set\data_','T=',num2str(T),'_',data_str,'_',num2str(i_data),'_noiseLevel_',num2str(acel_noise),'.mat']);
 
 % -------------------------------------------------------------------------
 %   Simulation
@@ -205,8 +206,8 @@ for k = Tini:total_time_step-1
             case 1 %cDeeP-LCC
                 controller_str = 'centralized';
                 [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_Zero_Dual(Up,Yp,Uf,Yf,Ep,Ef,...
-                                                                         uini,yini,eini,weight_v, weight_s, weight_u,...
-                                                                         lambda_g,lambda_y,u_limit,s_limit);
+                                                                       uini,yini,eini,weight_v, weight_s, weight_u,...
+                                                                       lambda_g,lambda_y,u_limit,s_limit);
                 u_opt = u_temp(1:m_ctr, 1);
                 time_all(k-Tini+1) = time_comp_temp;
                 if (time_comp_temp > time_cpu_max)
@@ -218,7 +219,7 @@ for k = Tini:total_time_step-1
             case 2 %dDeeP-LCC(Zero)
                 controller_str = 'decen_Zero';
                 for i = 1:m_ctr
-                    [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_Zero_Vertex(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
+                    [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_Zero_Dual(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
                                                                          ui_ini{i},yi_ini{i},ei_ini{i},weight_v, weight_s, weight_u,...
                                                                          lambda_g,lambda_y,u_limit,s_limit);
                     u_opt(i) = u_temp(1);
@@ -227,12 +228,6 @@ for k = Tini:total_time_step-1
                         pr = 1;
                     end
                 end
-                [u_tempt, pr_tempt, time_comp_tempt] = DeeP_LCC_Zero_Vertex_Test(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
-                                                                         ui_ini{i},yi_ini{i},ei_ini{i},weight_v, weight_s, weight_u,...
-                                                                         lambda_g,lambda_y,u_limit,s_limit);
-                [u_tempt1, pr_tempt1, time_comp_tempt1] = DeeP_LCC_Zero_Dual_Test(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
-                                                                         ui_ini{i},yi_ini{i},ei_ini{i},weight_v, weight_s, weight_u,...
-                                                                         lambda_g,lambda_y,u_limit,s_limit);
                 time_temp1 = max(time_comp);
                 time_all(k-Tini+1) = time_temp1;
                 if (time_temp1 > time_cpu_max)
@@ -250,6 +245,7 @@ for k = Tini:total_time_step-1
                         pr = 1;
                     end
                 end
+                time_temp1 = max(time_comp);
                 time_all(k-Tini+1) = time_temp1;
                 if (time_temp1 > time_cpu_max)
                     time_cpu_max = time_temp1;
@@ -307,11 +303,11 @@ for k = Tini:total_time_step-1
     end
     
 %     update equilibrium setup for the CAVs
-%     v_star = mean(S(k-Tini+1:k,1,2));               % update v_star
-%     if ~fixed_spacing_bool        
-%         s_star = acos(1-v_star/30*2)/pi*(35-5) + 5; % update s_star 
-%         s_limit = [spacing_min,spacing_max]-s_star;
-%     end
+    v_star = mean(S(k-Tini+1:k,1,2));               % update v_star
+    if ~fixed_spacing_bool        
+        s_star = acos(1-v_star/30*2)/pi*(35-5) + 5; % update s_star 
+        s_limit = [spacing_min,spacing_max]-s_star;
+    end
     
     % update past data in control process
     uini = u(:,k-Tini+1:k);
@@ -343,10 +339,10 @@ fprintf('Simulation ends at %6.4f seconds \n', tsim);
 if mix
     switch per_type
         case 1
-            save(['_data\simulation_data\Decentralized_DeeP_LCC\Sin_',controller_str,'_T=',num2str(T),'.mat'],...
+            save(['_data\simulation_data\Controllers\Sin_',controller_str,'_T=',num2str(T),'.mat'],...
                   'hdv_type','acel_noise','S','T','Tini','N','ID','Tstep','v_star','pr_status','time_cpu_max', 'time_all');
         case 2
-            save(['_data\simulation_data\Decentralized_DeeP_LCC\Brake_',controller_str,'_T=',num2str(T),'.mat'],...
+            save(['_data\simulation_data\Controllers\data_set\Brake_',controller_str,'_T=',num2str(T),'_i_data=',num2str(i_data),'.mat'],...
                   'hdv_type','acel_noise','S','T','Tini','N','ID','Tstep','v_star','pr_status','time_cpu_max', 'time_all');
     end
 else
@@ -358,6 +354,7 @@ else
             save('_data\simulation_data\HDV\Brake_HDV.mat',...
                   'hdv_type','acel_noise','S','T','Tini','N','ID','Tstep','v_star','pr_status','time_cpu_max', 'time_all');
     end
+end
 end
 
 

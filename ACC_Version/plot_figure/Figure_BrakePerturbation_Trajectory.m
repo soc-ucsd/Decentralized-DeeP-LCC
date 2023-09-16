@@ -2,7 +2,7 @@
 %               Analysis for simulation results under same data sample               
 % =========================================================================
 
-% clc; clear; close all;
+clc; clear; close all;
 
 % Data set
 data_str         = '2';  % 1. random ovm  2. manual ovm  3. homogeneous ovm
@@ -32,7 +32,7 @@ t_end_step = end_time / t_step;
 flag_update = 0;
 v_star = 15;
 s_star = 20;
-ID = [0,0,1,0,0,1,0,0,0,1,0,0,1,0,0,0];
+% ID = [0,0,0,1,0,0,0,0];
 
 i_data           = 1;     % Data set number
 
@@ -44,36 +44,8 @@ lambda_g     = 100;      % penalty on ||g||_2^2 in objective
 lambda_y     = 1e4;      % penalty on ||sigma_y||_2^2 in objective
 
 
-
-if mix
-switch controller_type
-    case 1
-%             load(['_data\simulation_data\Decentralized_DeeP_LCC\simulation25',data_str,'_',num2str(i_data),'_perType_',num2str(per_type),'_noiseLevel_',num2str(acel_noise),...
-%                 '_fixSpacing_',num2str(fixed_spacing_bool),...
-% %                 '_hdvType_',num2str(hdv_type),'_lambdaG_',num2str(lambda_g),'_lambdaY_',num2str(lambda_y),'.mat']);
-%   load(['_data\simulation_data\DeeP_LCC\constrained_simulation\simulation_dataTest13',data_str,'_',num2str(i_data),'_perType_',num2str(per_type),'_noiseLevel_',num2str(acel_noise),...
-%                 '_fixSpacing_',num2str(fixed_spacing_bool),...
-%                 '_hdvType_',num2str(hdv_type),'_lambdaG_',num2str(lambda_g),'_lambdaY_',num2str(lambda_y),'.mat']);
-  load('_data\simulation_data\Decentralized_DeeP_LCC\Sin_decen_Zero_T=1500.mat');
-            controller_str = 'DeeP-LCC';
-    case 2
-        load(['..\_data\simulation_data\MPC\constrained_simulation\simulation_data',data_str,'_',num2str(i_data),'_perType_',num2str(per_type),'_noiseLevel_',num2str(acel_noise),...
-            '_fixSpacing_',num2str(fixed_spacing_bool),...
-            '_hdvType_',num2str(hdv_type),'.mat']);
-        controller_str = 'MPC';    
-end
-else
-        if constraint_bool
-            load(['..\_data\simulation_data\HDV\constrained_simulation\simulation_data',data_str,'_',num2str(i_data),'_perType_',num2str(per_type),'_noiseLevel_',num2str(acel_noise),...
-                '_hdvType_',num2str(hdv_type),'.mat']);
-            controller_str = 'DeeP-LCC';
-        else
-            load(['..\_data\simulation_data\HDV\simulation_data',data_str,'_',num2str(i_data),'_perType_',num2str(per_type),'_noiseLevel_',num2str(acel_noise),...
-                '_hdvType_',num2str(hdv_type),'_lambdaG_',num2str(lambda_g),'_lambdaY_',num2str(lambda_y),'.mat']);
-            controller_str = 'DeeP-LCC';
-        end
-end
-
+%Load data set
+load('_data\simulation_data\Controllers\Brake_decen_Zero_T=500.mat');
 
 n_vehicle   = length(ID);           % number of vehicles
 
@@ -137,6 +109,11 @@ fig.PaperPositionMode = 'auto';
 % Spacing
 fig=figure;
 id_cav = 1;
+for i = 1:n_vehicle
+    if ID(i) == 0
+        plot(begin_time:Tstep:end_time,S(begin_time/Tstep:end_time/Tstep,i,1)-S(begin_time/Tstep:end_time/Tstep,i+1,1),'Color',color_gray,'linewidth',line_width-0.5); hold on; % line for velocity of HDVs
+    end
+end
 for i = 1:n_vehicle
    if ID(i) == 1
         if id_cav ==1
@@ -242,18 +219,16 @@ end
 FuelConsumption = 0;
 VelocityError   = 0;
 for i=begin_time/Tstep:end_time/Tstep
-    R  = 0.333 + 0.00108*S(i,4:end,2).^2 + 1.2*S(i,4:end,3);
-    Fuel  = 0.444 + 0.09*R.*S(i,4:end,2) + 0.054 * max(0,S(i,4:end,3)).^2.*S(i,4:end,2);
+    R  = 0.333 + 0.00108*S(i,5:end,2).^2 + 1.2*S(i,5:end,3);
+    Fuel  = 0.444 + 0.09*R.*S(i,5:end,2) + 0.054 * max(0,S(i,5:end,3)).^2.*S(i,5:end,2);
     Fuel(R <= 0) = 0.444;
     FuelConsumption = FuelConsumption + sum(Fuel)*Tstep;
     
 %     VelocityError = VelocityError + sum(abs(S(i,4:end,2)-S(i,1,2))/S(i,1,2));
-    VelocityError = VelocityError + sum((S(i,4:end,2)-15).^2);
+    VelocityError = VelocityError + sum((S(i,5:end,2)-15).^2);
 end
 
 VelocityError = VelocityError/n_vehicle/((end_time-begin_time)/Tstep);
 
-CloseLoopCost = calculateCLCost(S, weight_v, weight_s, weight_u, t_start_step,...
-                                v_star, s_star, flag_update, t_end_step, ID);
 fprintf('Fuel comsumption:   %4.2f \n',FuelConsumption);
 fprintf('Velocity error:   %4.2f \n',VelocityError);

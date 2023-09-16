@@ -1,12 +1,12 @@
-%Calculate the input with constant disturbance bound estimation method
+%Calculate the input with time-varying disturbance bound estimation method
 %Solve it via vertex form
 %Implict x = [t1; u1; tauy1] (Noting that here x represent decision variables)
 %Dimension: t1: 1, u1: m1*N, tauy1: p*Tini, safe constraints: m1*N (Consider
 % m1 as the number of CAVs in the system), disturbance: m2*dimDis, 
 %initial condition: (m1+m2+p)*Tini
 %Constant Constrain: [u_min, u_max], [s_min, s_max], [d_min, d_max]all vectors
-function [uout, problem_status, time_comp] = DeeP_LCC_Const_Vertex(UP,YP,UF,YF,WP,WF,...
-    uini,yini,eini,weight_v,weight_s,weight_u,lambda_g,lambda_y,u_limit,s_limit)
+function [uout, problem_status, time_comp] = DeeP_LCC_TimeV_Vertex(UP,YP,UF,YF,WP,WF,...
+    uini,yini,eini,weight_v,weight_s,weight_u,lambda_g,lambda_y,u_limit,s_limit,Tstep)
 %Define dimension for control system
 m1 = size(uini, 1); % dimension of control input
 m2 = size(eini,  1); % dimension of disturbance
@@ -37,18 +37,26 @@ u_min = u_limit(1) * ones(dim_u1, 1);
 u_max = u_limit(2) * ones(dim_u1, 1);
 s_min = s_limit(1) * ones(dim_safe, 1);
 s_max = s_limit(2) * ones(dim_safe, 1);
-%Constant disturbance bound
-dis_current = eini_col(end);
-dis_mean = mean(eini_col);
-d_low = dis_mean - min(eini_col);
-d_up = max(eini_col) - dis_mean;
-dis_min = dis_current -  d_low;
-dis_max = dis_current + d_up;
-if dis_min == dis_max
-    dis_min = dis_min - 0.1;
+%Time-varying disturbance bound
+d_base = eini_col(end); 
+a_all = zeros(size(eini_col, 1)-1, 1);
+for i = 2:size(eini_col, 1)
+    a_all(i-1) = (eini_col(i) - eini_col(i-1))/Tstep;
 end
-d_min = dis_min * ones(dim_dis, 1); 
-d_max = dis_max * ones(dim_dis, 1);
+a_current = a_all(end);
+a_low = mean(a_all) - min(a_all);
+a_up = max(a_all) - mean(a_all);
+d_min = zeros(dim_dis, 1);
+d_max = zeros(dim_dis, 1);
+for i = 1:dim_dis
+    if i == dim_dis
+        d_min(i) = d_base + (a_current - a_low) * Tstep * N;
+        d_max(i) = d_base + (a_current + a_up) * Tstep * N;
+    else
+        d_min(i) = d_base + (a_current - a_low) * ((i-1) * interval + 1) * Tstep;
+        d_max(i) = d_base + (a_current + a_up) * ((i-1) * interval + 1) * Tstep;
+    end
+end
 
 %Define pesudo matrix for representing g and y
 H = [UP;WP;YP;UF;WF];
@@ -103,9 +111,9 @@ permutation_all = dec2bin(0:(2^dim_dis-1), dim_dis);
 for i = 1:2^dim_dis
     for j = 1:dim_dis
         if permutation_all(i, j) == '0'
-            vertices(j, i) = dis_min;
+            vertices(j, i) = d_min(j);
         else
-            vertices(j, i) = dis_max;
+            vertices(j, i) = d_max(j);
         end
     end
 end
