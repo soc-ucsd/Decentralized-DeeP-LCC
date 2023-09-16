@@ -19,10 +19,10 @@ The code requires the installation of [Mosek](https://www.mosek.com/)
 ## Instruction
 ### Experiment A: 
 
- - The `main_nedc_simulation` can be used to reproduce the result for experiment A with controller type 2 (DeeP-LCC), controller type 4 (robust DeeP-LCC) and data sets in `_data\trajectory_data_collection` which are `data_T=500_2_1_noise...` and `data_T=1500_2_1_noise...`. 
+ - The `main_nedc_simulation` can be used to reproduce the result for experiment A with controller type 2 (DeeP-LCC), controller type 4 (robust DeeP-LCC) and data sets in `_data\trajectory_data_collection` which are `data_T=500_2_1_noise...` and `data_T=1500_2_2_noise...`. 
  - The results for reproducing Fig. 4 is in `_data\simulation_data\Controllers` which are `NEDC_decen_TimeV_T=500...`, `NEDC_decen_TimeV_T=1500...`, `NEDC_decen_Zero_T=500...`, `NEDC_decen_Zero_T=1500...`. The figure is plotted by the `Figure_NEDC_Comparison` in `plot_figure`. 
 ### Experiment B:
-- The `main_sin_brake_simulation` can be used to reproduce the result for experiment B with controller type 2 (DeeP-LCC), controller type 4 (robust DeeP-LCC) and  data sets in `_data\trajectory_data_collection` which are `data_T=500_2_1_noise...` and `data_T=1500_2_2_noise...`.
+- The `main_sin_brake_simulation` can be used to reproduce the result for experiment B with controller type 2 (DeeP-LCC), controller type 4 (robust DeeP-LCC) and  data sets in `_data\trajectory_data_collection` which are `data_T=500_2_1_noise...` and `data_T=1500_2_1_noise...`.
 
 - The results for reproducing Fig. 5 is in `_data\simulation_data\Controllers` which are `Brake_decen_TimeV_T=500...`, `Brake_decen_TimeV_T=1500...`, `Brake_decen_Zero_T=500...`, `Brake_decen_Zero_T=1500...`. The figure is plotted by the `Figure_Brake_Comparison` in `plot_figure`.
 

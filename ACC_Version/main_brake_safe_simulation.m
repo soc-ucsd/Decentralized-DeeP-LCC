@@ -62,7 +62,7 @@ acel_noise          = 0.1;  % A white noise signal on HDV's acceleration
 % Parameter setup
 % ----------------
 % Type of the controller
-controller_type     = 2;    % 1. cDeeP-LCC  2. dDeeP-LCC(Zero) 3. dDeeP-LCC(Const) 4. dDeeP-LCC(Time-vary) 
+controller_type     = 4;    % 1. cDeeP-LCC  2. dDeeP-LCC(Zero) 3. dDeeP-LCC(Const) 4. dDeeP-LCC(Time-vary) 
 % Initialize Equilibrium Setup (they might be updated in the control process)
 v_star              = 15;   % Equilibrium velocity
 s_star              = 20;   % Equilibrium spacing for CAV
@@ -74,7 +74,7 @@ weight_v            = 1;    % weight coefficient for velocity error
 weight_s            = 0.5;  % weight coefficient for spacing error   
 weight_u            = 0.1;  % weight coefficient for control input
 % Setup in DeeP-LCC
-T                   = 500; % length of data samples
+T                   = 1500; % length of data samples
 lambda_g            = 100;  % penalty on ||g||_2^2 in objective
 % lambda_g            = 100;  % penalty on ||g||_2^2 in objective
 lambda_y            = 1e4;  % penalty on ||sigma_y||_2^2 in objective
@@ -253,7 +253,7 @@ for k = Tini:total_time_step-1
             case 4 %dDeeP-LCC(Time-vary)
                 controller_str = 'decen_TimeV';
                 for i = 1:m_ctr
-                    [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_TimeV_Dual(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
+                    [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_TimeV_Vertex(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
                                                                          ui_ini{i},yi_ini{i},ei_ini{i},weight_v, weight_s, weight_u,...
                                                                          lambda_g,lambda_y,u_limit,s_limit,Tstep);
                     u_opt(i) = u_temp(1);

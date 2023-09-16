@@ -22,7 +22,7 @@ warning off;
 % Scenario Setup
 % ----------------
 % whether traffic flow is mixed
-mix                 = 0;                    % 0. all HDVs; 1. there exist CAVs
+mix                 = 1;                    % 0. all HDVs; 1. there exist CAVs
 ID                  = [0,0,0,1,0,0,0,0];    % ID of vehicle types
                                             % 1: CAV  0: HDV
 pos_cav             = find(ID==1);          % position of CAVs
@@ -68,7 +68,7 @@ acel_noise          = 0.1;  % A white noise signal on HDV's acceleration
 % Parameter setup
 % ----------------
 % Type of the controller
-controller_type     = 2;    % 1. cDeeP-LCC  2. dDeeP-LCC(Zero) 3. dDeeP-LCC(Const) 4. dDeeP-LCC(Time-vary) 
+controller_type     = 4;    % 1. cDeeP-LCC  2. dDeeP-LCC(Zero) 3. dDeeP-LCC(Const) 4. dDeeP-LCC(Time-vary) 
 % Initialize Equilibrium Setup (they might be updated in the control process)
 v_star              = 15;   % Equilibrium velocity
 s_star              = 20;   % Equilibrium spacing for CAV
@@ -126,7 +126,7 @@ e           = zeros(1,total_time_step);         % external input
 % Pre-collected data
 % ----------------
 % load pre-collected data for DeeP-LCC
-i_data              = 1;    % id of the pre-collected data
+i_data              = 2;    % id of the pre-collected data
 load(['_data\trajectory_data_collection\data_','T=',num2str(T),'_',data_str,'_',num2str(i_data),'_noiseLevel_',num2str(acel_noise),'.mat']);
 
 % -------------------------------------------------------------------------
@@ -147,7 +147,7 @@ r               = zeros(p_ctr,total_time_step+N);
 % -------------------------------------------------------------------------
 %   Experiment starts here
 %--------------------------------------------------------------------------
-tic
+t_start = tic;
 % ------------------
 %  Initialization: all the vehicles use the HDV model
 % ------------------
@@ -243,7 +243,7 @@ for k = initialization_time/Tstep:total_time_step-1
             case 4 %dDeeP-LCC(Time-vary)
                 controller_str = 'decen_TimeV';
                 for i = 1:m_ctr
-                    [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_TimeV_Dual(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
+                    [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_TimeV_Vertex(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
                                                                          ui_ini{i},yi_ini{i},ei_ini{i},weight_v, weight_s, weight_u,...
                                                                          lambda_g,lambda_y,u_limit,s_limit,Tstep);
                     u_opt(i) = u_temp(1);
@@ -305,7 +305,7 @@ end
 k_end = k+1;
 y(:,k_end) = measure_mixed_traffic(S(k_end,2:end,2),S(k_end,:,1),ID,v_star,s_star,measure_type);
 
-tsim = toc;
+tsim = toc(t_start);
 
 fprintf('Simulation ends at %6.4f seconds \n', tsim);
 
