@@ -18,8 +18,6 @@ hdv_type        = 1;    % 1. OVM   2. IDM
 acel_noise      = 0.1;  % A white noise signal on HDV's original acceleration
 
 % Head vehicle trajectory
-trajectory_id = '3';
-% head_vehicle_trajectory = load(['_data/nedc_modified_v',num2str(trajectory_id),'.mat']);
 head_vehicle_trajectory = load(['_data/nedc.mat']);
 end_time = head_vehicle_trajectory.time(end);
 
@@ -39,8 +37,7 @@ i_data          = 1;
 
 
 %Load data
-load(['_data\simulation_data\Controllers\NEDC_decen_TimeV_T=1500.mat']);
-
+load('_data\simulation_data\Controllers\NEDC_decen_TimeV_T=1500.mat');
 
 n_vehicle   = length(ID);           % number of vehicles
 
@@ -61,9 +58,7 @@ total_size  = 14;
 line_width  = 1.5;
 
 % Head vehicle trajectory
-% time_point = [60,88,121,176,206];  % For Trajectory V1
-time_point = [60,88,121,166,196];   % For Trajectory V2
-% time_point = [60,108,161,226,276];  % For Trajectory V3
+time_point = [60,88,121,166,196];  
 time_scale = (begin_time:Tstep:total_time)-(initialization_time + adaption_time);
 
 figure;

@@ -8,7 +8,6 @@
 function [uout, problem_status, time_comp] = DeeP_LCC_Const_Vertex(UP,YP,UF,YF,WP,WF,...
     uini,yini,eini,weight_v,weight_s,weight_u,lambda_g,lambda_y,u_limit,s_limit)
 %Define dimension for control system
-'Vertex_V2'
 ts = tic;
 m1 = size(uini, 1); % dimension of control input
 m2 = size(eini,  1); % dimension of disturbance

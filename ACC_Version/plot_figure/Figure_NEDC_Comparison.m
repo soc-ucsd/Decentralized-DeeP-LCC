@@ -136,6 +136,7 @@ hLegend = legend({'1', '$T=1500$', '$T=500$'}, 'Interpreter','latex',...
           'Position',[0.16,0.72,0.13,0.15]);
 hLegend.AutoUpdate = 'off';
 hLegend.PlotChildren = hLegend.PlotChildren([2,3]);
+hLegend.EdgeColor = 'none';
 
 set(gcf,'Position',[250 150 850 300]);
 fig = gcf;

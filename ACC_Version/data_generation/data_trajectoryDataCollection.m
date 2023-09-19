@@ -5,7 +5,7 @@
 clc; close all; clear;
 addpath('_fcn');
 
-data_total_number = 10;
+data_total_number = 100;
 
 h_wait = waitbar(0,'please wait');
 
@@ -192,7 +192,7 @@ end
 str=['Processing...',num2str(i_data/data_total_number*100),'%'];
     waitbar(i_data/data_total_number,h_wait,str);
 
-save(['_data\trajectory_data_collection\data_set\data_','T=',num2str(T),'_',data_str,'_',num2str(i_data),'_noiseLevel_',num2str(acel_noise),'.mat'],...
+save(['_data\trajectory_data_collection\data_set2\data_','T=',num2str(T),'_',data_str,'_',num2str(i_data),'_noiseLevel_',num2str(acel_noise),'.mat'],...
     'hdv_type','acel_noise','Up','Yp','Uf','Yf','Ep','Ef','T','Tini','N','ID','Tstep','v_star','Uip','Uif','Eip','Eif','Yip','Yif');
 
 end

@@ -4,9 +4,9 @@
 %       The head vehicle takes a sudden brake
 %
 % See Section V of the following paper for details
-%   Title : Data-Driven Predicted Control for Connected and Autonomous
-%           Vehicles in Mixed Traffic
-%   Author: Jiawei Wang, Yang Zheng, Qing Xu and Keqiang Li
+%   Title : Smoothing Mixed Traffic with Robust Data-driven Predictive Control
+%                     for Connected and Autonomous Vehicles
+%   Author: Xu Shang, Jiawei Wang, Yang Zheng
 % =========================================================================
 
 clc; close all; clear all;
@@ -35,7 +35,7 @@ sine_amp            = 5;    % amplitidue of sinuoid perturbation
 brake_amp           = 10;   % brake amplitude of brake perturbation
 
 % time
-total_time          = 50;              % Total Simulation Time
+total_time          = 40;              % Total Simulation Time
 Tstep               = 0.05;            % Time Step
 total_time_step     = total_time/Tstep;
 time_cpu_max = 0;
@@ -62,7 +62,8 @@ acel_noise          = 0.1;  % A white noise signal on HDV's acceleration
 % Parameter setup
 % ----------------
 % Type of the controller
-controller_type     = 4;    % 1. cDeeP-LCC  2. dDeeP-LCC(Zero) 3. dDeeP-LCC(Const) 4. dDeeP-LCC(Time-vary) 
+% Type of the controller
+controller_type     = 2;    % 1. DeeP-LCC(Zero) 2. rDeeP-LCC(Time-vary) 
 % Initialize Equilibrium Setup (they might be updated in the control process)
 v_star              = 15;   % Equilibrium velocity
 s_star              = 20;   % Equilibrium spacing for CAV
@@ -124,10 +125,10 @@ e           = zeros(1,total_time_step);         % external input
 % ----------------
 % Pre-collected data
 % ----------------
-% load pre-collected data for DeeP-LCC
-for indicator = 1:10
+% load pre-collected data
+for indicator = 1:100
 i_data              = indicator;    % id of the pre-collected data
-load(['_data\trajectory_data_collection\data_set\data_','T=',num2str(T),'_',data_str,'_',num2str(i_data),'_noiseLevel_',num2str(acel_noise),'.mat']);
+load(['_data\trajectory_data_collection\data_set2\data_','T=',num2str(T),'_',data_str,'_',num2str(i_data),'_noiseLevel_',num2str(acel_noise),'.mat']);
 
 % -------------------------------------------------------------------------
 %   Simulation
@@ -183,8 +184,6 @@ u(:,1:Tini) = uini;
 e(:,1:Tini) = eini;
 y(:,1:Tini) = yini;
 
-% For MPC, which might have infeasible cases
-previous_u_opt = 0; 
 
 % ------------------
 %  Continue the simulation
@@ -203,27 +202,13 @@ for k = Tini:total_time_step-1
         time_comp = zeros(m_ctr, 1);
         pr = 0;
         switch controller_type
-            case 1 %cDeeP-LCC
-                controller_str = 'centralized';
-                [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_Zero_Dual(Up,Yp,Uf,Yf,Ep,Ef,...
-                                                                       uini,yini,eini,weight_v, weight_s, weight_u,...
-                                                                       lambda_g,lambda_y,u_limit,s_limit);
-                u_opt = u_temp(1:m_ctr, 1);
-                time_all(k-Tini+1) = time_comp_temp;
-                if (time_comp_temp > time_cpu_max)
-                    time_cpu_max = time_comp_temp;
-                end
-                if pr_temp == 1
-                   pr = 1;
-                end
-            case 2 %dDeeP-LCC(Zero)
+            case 1 %DeeP-LCC(Zero)
                 controller_str = 'decen_Zero';
                 for i = 1:m_ctr
                     [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_Zero_Dual(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
                                                                          ui_ini{i},yi_ini{i},ei_ini{i},weight_v, weight_s, weight_u,...
                                                                          lambda_g,lambda_y,u_limit,s_limit);
                     u_opt(i) = u_temp(1);
-                    time_comp(i) = time_comp_temp;
                     if pr_temp == 1
                         pr = 1;
                     end
@@ -233,24 +218,7 @@ for k = Tini:total_time_step-1
                 if (time_temp1 > time_cpu_max)
                     time_cpu_max = time_temp1;
                 end
-            case 3 %dDeeP-LCC(Constant)
-                controller_str = 'decen_Const';
-                for i = 1:m_ctr
-                    [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_Const_Dual(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
-                                                                         ui_ini{i},yi_ini{i},ei_ini{i},weight_v, weight_s, weight_u,...
-                                                                         lambda_g,lambda_y,u_limit,s_limit);
-                    u_opt(i) = u_temp(1);
-                    time_comp(i) = time_comp_temp;
-                    if pr_temp == 1
-                        pr = 1;
-                    end
-                end
-                time_temp1 = max(time_comp);
-                time_all(k-Tini+1) = time_temp1;
-                if (time_temp1 > time_cpu_max)
-                    time_cpu_max = time_temp1;
-                end
-            case 4 %dDeeP-LCC(Time-vary)
+            case 2 %rDeeP-LCC(Time-vary)
                 controller_str = 'decen_TimeV';
                 for i = 1:m_ctr
                     [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_TimeV_Vertex(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
@@ -329,7 +297,7 @@ end
 k_end = k+1;
 y(:,k_end) = measure_mixed_traffic(S(k_end,2:end,2),S(k_end,:,1),ID,v_star,s_star,measure_type);
 
-tsim = toc - tstart;
+tsim = toc(tstart);
 
 fprintf('Simulation ends at %6.4f seconds \n', tsim);
 
@@ -342,7 +310,7 @@ if mix
             save(['_data\simulation_data\Controllers\Sin_',controller_str,'_T=',num2str(T),'.mat'],...
                   'hdv_type','acel_noise','S','T','Tini','N','ID','Tstep','v_star','pr_status','time_cpu_max', 'time_all');
         case 2
-            save(['_data\simulation_data\Controllers\data_set\Brake_',controller_str,'_T=',num2str(T),'_i_data=',num2str(i_data),'.mat'],...
+            save(['_data\simulation_data\Controllers\data_set2\Brake_',controller_str,'_T=',num2str(T),'_i_data=',num2str(i_data),'.mat'],...
                   'hdv_type','acel_noise','S','T','Tini','N','ID','Tstep','v_star','pr_status','time_cpu_max', 'time_all');
     end
 else

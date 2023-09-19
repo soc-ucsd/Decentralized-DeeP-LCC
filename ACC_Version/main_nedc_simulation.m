@@ -5,9 +5,9 @@
 %       Driving Cycle (EUDC) in New European Driving Circle (NEDC)
 %
 % See Section V of the following paper for details
-%   Title : Data-Driven Predicted Control for Connected and Autonomous
-%           Vehicles in Mixed Traffic
-%   Author: Jiawei Wang, Yang Zheng, Qing Xu and Keqiang Li
+%   Title : Smoothing Mixed Traffic with Robust Data-driven Predictive Control
+%                     for Connected and Autonomous Vehicles
+%   Author: Xu Shang, Jiawei Wang, Yang Zheng
 % =========================================================================
 
 clc; close all; clear;
@@ -68,7 +68,7 @@ acel_noise          = 0.1;  % A white noise signal on HDV's acceleration
 % Parameter setup
 % ----------------
 % Type of the controller
-controller_type     = 4;    % 1. cDeeP-LCC  2. dDeeP-LCC(Zero) 3. dDeeP-LCC(Const) 4. dDeeP-LCC(Time-vary) 
+controller_type     = 2;    % 1. DeeP-LCC(Zero) 2. rDeeP-LCC(Time-vary) 
 % Initialize Equilibrium Setup (they might be updated in the control process)
 v_star              = 15;   % Equilibrium velocity
 s_star              = 20;   % Equilibrium spacing for CAV
@@ -80,7 +80,7 @@ weight_v            = 1;    % weight coefficient for velocity error
 weight_s            = 0.5;  % weight coefficient for spacing error   
 weight_u            = 0.1;  % weight coefficient for control input
 % Setup in DeeP-LCC
-T                   = 1500; % length of data samples
+T                   = 500; % length of data samples
 lambda_g            = 100;  % penalty on ||g||_2^2 in objective
 lambda_y            = 1e4;  % penalty on ||sigma_y||_2^2 in objective
 % Constraints
@@ -126,7 +126,7 @@ e           = zeros(1,total_time_step);         % external input
 % Pre-collected data
 % ----------------
 % load pre-collected data for DeeP-LCC
-i_data              = 2;    % id of the pre-collected data
+i_data              = 1;    % id of the pre-collected data
 load(['_data\trajectory_data_collection\data_','T=',num2str(T),'_',data_str,'_',num2str(i_data),'_noiseLevel_',num2str(acel_noise),'.mat']);
 
 % -------------------------------------------------------------------------
@@ -193,27 +193,17 @@ for k = initialization_time/Tstep:total_time_step-1
         time_comp = zeros(m_ctr, 1);
         pr = 0;
         switch controller_type
-            case 1 %cDeeP-LCC
-                controller_str = 'centralized';
-                [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_Zero_Dual(Up,Yp,Uf,Yf,Ep,Ef,...
-                                                                         uini,yini,eini,weight_v, weight_s, weight_u,...
-                                                                         lambda_g,lambda_y,u_limit,s_limit);
-                u_opt = u_temp(1:m_ctr, 1);
-                time_all(k-Tini+1) = time_comp_temp;
-                if (time_comp_temp > time_cpu_max)
-                    time_cpu_max = time_comp_temp;
-                end
-                if pr_temp == 1
-                   pr = 1;
-                end
-            case 2 %dDeeP-LCC(Zero)
+            case 1 %DeeP-LCC(Zero)
                 controller_str = 'decen_Zero';
                 for i = 1:m_ctr
-                    [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_Zero_Dual(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
-                                                                         ui_ini{i},yi_ini{i},ei_ini{i},weight_v, weight_s, weight_u,...
-                                                                         lambda_g,lambda_y,u_limit,s_limit);
+%                     [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_Zero_Dual(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
+%                                                                          ui_ini{i},yi_ini{i},ei_ini{i},weight_v, weight_s, weight_u,...
+%                                                                          lambda_g,lambda_y,u_limit,s_limit);
+                    
+                    [u_temp,pr_temp] = qp_DeeP_LCC(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
+                                ui_ini{i},yi_ini{i},ei_ini{i},weight_v, weight_s, weight_u,lambda_g,lambda_y,u_limit,s_limit);
                     u_opt(i) = u_temp(1);
-                    time_comp(i) = time_comp_temp;
+                    time_comp_temp = 0;
                     if pr_temp == 1
                         pr = 1;
                     end
@@ -223,24 +213,7 @@ for k = initialization_time/Tstep:total_time_step-1
                 if (time_temp1 > time_cpu_max)
                     time_cpu_max = time_temp1;
                 end
-            case 3 %dDeeP-LCC(Constant)
-                controller_str = 'decen_Const';
-                for i = 1:m_ctr
-                    [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_Const_Dual(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
-                                                                         ui_ini{i},yi_ini{i},ei_ini{i},weight_v, weight_s, weight_u,...
-                                                                         lambda_g,lambda_y,u_limit,s_limit);
-                    u_opt(i) = u_temp(1);
-                    time_comp(i) = time_comp_temp;
-                    if pr_temp == 1
-                        pr = 1;
-                    end
-                end
-                time_temp1 = max(time_comp);
-                time_all(k-Tini+1) = time_temp1;
-                if (time_temp1 > time_cpu_max)
-                    time_cpu_max = time_temp1;
-                end
-            case 4 %dDeeP-LCC(Time-vary)
+            case 2 %rDeeP-LCC(Time-vary)
                 controller_str = 'decen_TimeV';
                 for i = 1:m_ctr
                     [u_temp, pr_temp, time_comp_temp] = DeeP_LCC_TimeV_Vertex(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
@@ -315,7 +288,7 @@ fprintf('Simulation ends at %6.4f seconds \n', tsim);
 trajectory_id = 1;
 if mix
     save(['_data\simulation_data\Controllers\NEDC_',controller_str,'_T=',num2str(T),'.mat'],...
-          'hdv_type','acel_noise','S','T','Tini','N','ID','Tstep','v_star','pr_status','time_cpu_max', 'time_all');           
+          'hdv_type','acel_noise','S','T','Tini','N','ID','Tstep','v_star','pr_status','time_cpu_max', 'time_all');                    
 else
     save('_data\simulation_data\HDV\NEDC_HDV.mat',...
          'hdv_type','acel_noise','S','T','Tini','N','ID','Tstep','v_star','pr_status','time_cpu_max', 'time_all');    

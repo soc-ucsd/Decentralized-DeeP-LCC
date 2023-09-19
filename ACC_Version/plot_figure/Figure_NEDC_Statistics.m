@@ -41,22 +41,13 @@ lambda_y     = 1e4;      % penalty on ||sigma_y||_2^2 in objective
 
 i_data          = 2;
 
-
-% load(['_data\simulation_data\MPC\nedc_simulation\simulation_data',data_str,'_modified_v',num2str(trajectory_id),'_noiseLevel_',num2str(acel_noise),...
-%         '_hdvType_',num2str(hdv_type),'.mat']);
-% S_MPC      = S;       
-% load(['_data\simulation_data\DeePC\nedc_simulation\simulation_data',data_str,'_',num2str(i_data),'_modified_v',num2str(trajectory_id),'_noiseLevel_',num2str(acel_noise),...
-%         '_hdvType_',num2str(hdv_type),'_lambdaG_',num2str(lambda_g),'_lambdaY_',num2str(lambda_y),'.mat']);
-% S_DeePC    = S; 
-% load(['_data\simulation_data\HDV\nedc_simulation\simulation_data',data_str,'_modified_v',num2str(trajectory_id),'_noiseLevel_',num2str(acel_noise),...
-%         '_hdvType_',num2str(hdv_type),'.mat']);
-% S_HDV      = S;  
- load(['_data\simulation_data\HDV\NEDC_HDV.mat']);
- S_HDV = S;
- load(['_data\simulation_data\Decentralized_DeeP_LCC\NNEDC_decen_Zero_T=1500.mat']);
- S_DeePC = S;
- load(['_data\simulation_data\Decentralized_DeeP_LCC\NNEDC_decen_TimeV_T=1500.mat']);
- S_rDeePC = S;
+% Load data sets
+load('_data\simulation_data\HDV\NEDC_HDV.mat');
+S_HDV = S;
+load('_data\simulation_data\Decentralized_DeeP_LCC\NNEDC_decen_Zero_T=1500.mat');
+S_DeePC = S;
+load('_data\simulation_data\Decentralized_DeeP_LCC\NNEDC_decen_TimeV_T=1500.mat');
+S_rDeePC = S;
 
 
 n_vehicle   = length(ID);           % number of vehicles

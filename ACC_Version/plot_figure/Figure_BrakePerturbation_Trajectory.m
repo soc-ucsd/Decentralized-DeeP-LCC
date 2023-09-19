@@ -2,7 +2,7 @@
 %               Analysis for simulation results under same data sample               
 % =========================================================================
 
-% clc; clear; close all;
+clc; clear; close all;
 
 % Data set
 data_str         = '2';  % 1. random ovm  2. manual ovm  3. homogeneous ovm
@@ -24,7 +24,7 @@ fixed_spacing_bool = 0;
 
 % Simulation Time
 begin_time       = 0.05;
-end_time         = 50;              
+end_time         = 40;              
 
 t_start_step = 20;
 t_step = 0.05;
@@ -46,7 +46,8 @@ lambda_y     = 1e4;      % penalty on ||sigma_y||_2^2 in objective
 
 %Load data set
 % load('_data\simulation_data\Controllers\Brake_decen_Zero_T=1500.mat');
-load('_data\simulation_data\Controllers\data_set\Brake_decen_TimeV_T=1500_i_data=10.mat');
+load('_data\simulation_data\Controllers\data_set2\Brake_decen_Zero_T=1500_i_data=21.mat');
+% load('_data\Test\Brake_decen_Zero_T=500.mat');
 n_vehicle   = length(ID);           % number of vehicles
 
 

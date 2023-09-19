@@ -44,31 +44,11 @@ lambda_g     = 100;      % penalty on ||g||_2^2 in objective
 lambda_y     = 1e4;      % penalty on ||sigma_y||_2^2 in objective
 
 
-
-if mix
-switch controller_type
-    case 1
-        load('_data\simulation_data\Controllers\Brake_decen_Zero_T=1500.mat');
-        S_zero = S;
-        load('_data\simulation_data\Controllers\Brake_decen_TimeV_T=1500.mat');
-        S_timeV = S;
-    case 2
-        load(['..\_data\simulation_data\MPC\constrained_simulation\simulation_data',data_str,'_',num2str(i_data),'_perType_',num2str(per_type),'_noiseLevel_',num2str(acel_noise),...
-            '_fixSpacing_',num2str(fixed_spacing_bool),...
-            '_hdvType_',num2str(hdv_type),'.mat']);
-        controller_str = 'MPC';    
-end
-else
-        if constraint_bool
-            load(['..\_data\simulation_data\HDV\constrained_simulation\simulation_data',data_str,'_',num2str(i_data),'_perType_',num2str(per_type),'_noiseLevel_',num2str(acel_noise),...
-                '_hdvType_',num2str(hdv_type),'.mat']);
-            controller_str = 'DeeP-LCC';
-        else
-            load(['..\_data\simulation_data\HDV\simulation_data',data_str,'_',num2str(i_data),'_perType_',num2str(per_type),'_noiseLevel_',num2str(acel_noise),...
-                '_hdvType_',num2str(hdv_type),'_lambdaG_',num2str(lambda_g),'_lambdaY_',num2str(lambda_y),'.mat']);
-            controller_str = 'DeeP-LCC';
-        end
-end
+%Load data sets
+load('_data\simulation_data\Controllers\Brake_decen_Zero_T=1500.mat');
+S_zero = S;
+load('_data\simulation_data\Controllers\Brake_decen_TimeV_T=1500.mat');
+S_timeV = S;
 
 
 n_vehicle   = length(ID);           % number of vehicles

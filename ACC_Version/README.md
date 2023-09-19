@@ -19,21 +19,20 @@ The code requires the installation of [Mosek](https://www.mosek.com/)
 ## Instruction
 ### Experiment A: 
 
- - The `main_nedc_simulation` can be used to reproduce the result for experiment A with controller type 2 (DeeP-LCC), controller type 4 (robust DeeP-LCC) and data sets in `_data\trajectory_data_collection` which are `data_T=500_2_1_noise...` and `data_T=1500_2_2_noise...`. 
- - The results for reproducing Fig. 4 is in `_data\simulation_data\Controllers` which are `NEDC_decen_TimeV_T=500...`, `NEDC_decen_TimeV_T=1500...`, `NEDC_decen_Zero_T=500...`, `NEDC_decen_Zero_T=1500...`. The figure is plotted by the `Figure_NEDC_Comparison` in `plot_figure`. 
+ - The `main_nedc_simulation` can be used to reproduce results for experiment A with controller type 1 (DeeP-LCC), controller type 2 (robust DeeP-LCC) and data sets in `_data\trajectory_data_collection` which are `data_T=500_2_1_noise...` and `data_T=1500_2_2_noise...`. 
+ - The results for reproducing Fig. 4 are in `_data\simulation_data\Controllers` which are `NEDC_decen_TimeV_T=500...`, `NEDC_decen_TimeV_T=1500...`, `NEDC_decen_Zero_T=500...`, `NEDC_decen_Zero_T=1500...`. The figure is plotted by the `Figure_NEDC_Comparison` in `plot_figure`. 
 ### Experiment B:
-- The `main_sin_brake_simulation` can be used to reproduce the result for experiment B with controller type 2 (DeeP-LCC), controller type 4 (robust DeeP-LCC) and  data sets in `_data\trajectory_data_collection` which are `data_T=500_2_1_noise...` and `data_T=1500_2_1_noise...`.
+- The `main_sin_brake_simulation` and `main_brake_safe_simulation` can be used to reproduce results for experiment B with controller type 1 (DeeP-LCC), controller type 2 (robust DeeP-LCC, data sets in `_data\trajectory_data_collection` which are `data_T=500_2_1_noise...` and `data_T=1500_2_1_noise...` and trajectories in `_data\trajectory_data_collection\data_set2`.
 
-- The results for reproducing Fig. 5 is in `_data\simulation_data\Controllers` which are `Brake_decen_TimeV_T=500...`, `Brake_decen_TimeV_T=1500...`, `Brake_decen_Zero_T=500...`, `Brake_decen_Zero_T=1500...`. The figure is plotted by the `Figure_Brake_Comparison` in `plot_figure`.
+- The results for reproducing Fig. 5 are in `_data\simulation_data\Controllers` which are `Brake_decen_TimeV_T=500...`, `Brake_decen_TimeV_T=1500...`, `Brake_decen_Zero_T=500...`, `Brake_decen_Zero_T=1500...`. The figure is plotted by the `Figure_Brake_Comparison` in `plot_figure`.
 
-### Further Safety Validation
-We note that DeeP-LCC will not always cause a collision, but it does have a high probability of causing an emergency. We provide the `main_brake_safe_simulation` script to run a set of trajectories and store their results. For both T=500 and T=1500, we generate 10 trajectories to test whether the CAV breaks the safety bounds under different controllers. The results show that robust DeeP-LCC does not break the safety bounds in any of the test cases, whereas DeeP-LCC breaks them 7 times for T=500 and another 7 times for T=1500, with 2 instances being slight violations. The trajectories used for the simulation can be found in `_data\trajectory_data_collection\data_set`, and the results are stored in `_data\simulation_data\Controllers\data_set`.
+- The results for reproducing Table III are in `_data\simulation_data\Controllers\data_set2`. The rate in Table III is computed by the `Safety_statistics` in `plot_figure`.
 
 ### Further Development
-To use it for general mixed traffic system with different formulations, please check the decentralized DeeP-LCC for more detail.
+To use it for general mixed traffic systems with different formulations, please check the decentralized DeeP-LCC for more details.
 
 # Contact us
-To contact us about decentralized DeeP-LCC, email either [Xu Shang](mailto:x3shang@ucsd.edu?Subject=Robust-DeeP-LCC) or [Yang Zheng](mailto:zhengy@eng.ucsd.edu?Subject=Robust-DeeP-LCC).
+To contact us about robust DeeP-LCC, email either [Xu Shang](mailto:x3shang@ucsd.edu?Subject=Robust-DeeP-LCC) or [Yang Zheng](mailto:zhengy@eng.ucsd.edu?Subject=Robust-DeeP-LCC).
 
 
 
