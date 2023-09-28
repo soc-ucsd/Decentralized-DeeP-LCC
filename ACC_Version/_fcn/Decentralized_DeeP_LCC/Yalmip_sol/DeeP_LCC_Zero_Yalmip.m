@@ -1,3 +1,5 @@
+%The code for Yalmip is developed and adapted from the following paper: 
+% Decentralized Data-Enabled Predictive Control for Power System Oscillation Damping
 function [uout, problem_status, time_form, time_solver] = DeeP_LCC_Zero_Yalmip(UP,YP,UF,YF,WP,WF,...
     uini,yini,eini,weight_v, weight_s, weight_u, lambda_g,lambda_y,u_limit,s_limit)
 
