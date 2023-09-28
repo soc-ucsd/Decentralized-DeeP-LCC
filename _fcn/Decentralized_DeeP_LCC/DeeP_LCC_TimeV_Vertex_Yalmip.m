@@ -1,27 +1,7 @@
-% Copyright 2021 ETH Zurich, Linbin Huang, Jeremy Coulson, John Lygeros, Florian Dorfler
-% 
-% Licensed under the Apache License, Version 2.0 (the "License");
-% you may not use this file except in compliance with the License.
-% You may obtain a copy of the License at
-% 
-%     http://www.apache.org/licenses/LICENSE-2.0
-% 
-% Unless required by applicable law or agreed to in writing, software
-% distributed under the License is distributed on an "AS IS" BASIS,
-% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-% See the License for the specific language governing permissions and
-% limitations under the License.
-
+%The code for Yalmip is developed and adapted from the following paper: 
+% Decentralized Data-Enabled Predictive Control for Power System Oscillation Damping
 function [uout, problem_status, time_form, time_solver] = DeeP_LCC_TimeV_Vertex_Yalmip(UP,YP,UF,YF,WP,WF,...
     uini,yini,eini,weight_v, weight_s, weight_u, lambda_g,lambda_y,u_limit,s_limit, Tstep)
-% This function will solve the DeePC optimization problem by using OSQP.
-% The minimax problem will be transformed it to a conic
-% program and then solved by YALMIP + MOSEK.
-
-% The coding language can refer to:
-% https://yalmip.github.io/example/robustmpc/ and
-% https://yalmip.github.io/command/optimizer/ 
-
 %Define dimension for control system
 m1 = size(uini,1); % dimension of control input
 m2 = size(eini,1); % dimension of disturbance
