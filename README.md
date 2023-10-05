@@ -1,5 +1,5 @@
 # Decentralized DeeP-LCC
-In this project, we present a decentralized DeeP-LCC for control of the Connected and Autonomous Vehicles(CAVs) in mixed traffic. This repository contains the MATLAB scripts for reproducing the experiments in our paper and for further development: (Add the paper)
+In this project, we present a decentralized DeeP-LCC for control of the Connected and Autonomous Vehicles(CAVs) in mixed traffic. This repository contains the MATLAB scripts for reproducing the experiments in our paper and for further development:
 
 ## Decentralized Data-EnablEd Predictive Leading Cruise Control(Decentralized DeeP-LCC)
 DeeP-LCC is a data-driven predictive control strategy for CAVs in mixed traffic, where human-driven vehicles(HDVs) also exist. It aims to deal with unknown nonlinear car-following behaviors of HDVs and has been validated in real world small-
