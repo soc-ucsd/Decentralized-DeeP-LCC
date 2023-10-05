@@ -1,5 +1,5 @@
 # Robust DeeP-LCC
-In this project, we present a robust DeeP-LCC for control of the Connected and Autonomous Vehicles(CAVs) in CF-LCC system. This repository contains the MATLAB scripts for reproducing the experiments in our paper.
+In this project, we present a robust DeeP-LCC for control of the Connected and Autonomous Vehicles(CAVs) in CF-LCC system. This repository contains the MATLAB scripts for reproducing the experiments in our paper which can be found [here](https://arxiv.org/abs/2310.00509).
 
 ## Robust Data-EnablEd Predictive Leading Cruise Control(Robust DeeP-LCC)
 DeeP-LCC is a data-driven predictive control strategy for CAVs in mixed traffic, where human-driven vehicles (HDVs) also exist. It aims to deal with unknown nonlinear car-following behaviors of HDVs and has been validated in real world small-
