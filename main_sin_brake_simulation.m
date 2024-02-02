@@ -21,7 +21,7 @@ warning off;
 % Scenario Setup
 % ----------------
 % whether traffic flow is mixed
-mix                 = 1;                    % 0. all HDVs; 1. there exist CAVs
+mix                 = 0;                    % 0. all HDVs; 1. there exist CAVs
 ID                  = [0,0,1,0,0,1,0,0,0,1,0,0,1,0,0,0];    % ID of vehicle types
                                             % 1: CAV  0: HDV
 pos_cav             = find(ID==1);          % position of CAVs
@@ -227,12 +227,6 @@ for k = Tini:total_time_step-1
                         pr = 1;
                     end
                 end
-                [u_tempt, pr_tempt, time_comp_tempt] = DeeP_LCC_Zero_Vertex_Test(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
-                                                                         ui_ini{i},yi_ini{i},ei_ini{i},weight_v, weight_s, weight_u,...
-                                                                         lambda_g,lambda_y,u_limit,s_limit);
-                [u_tempt1, pr_tempt1, time_comp_tempt1] = DeeP_LCC_Zero_Dual_Test(Uip{i},Yip{i},Uif{i},Yif{i},Eip{i},Eif{i},...
-                                                                         ui_ini{i},yi_ini{i},ei_ini{i},weight_v, weight_s, weight_u,...
-                                                                         lambda_g,lambda_y,u_limit,s_limit);
                 time_temp1 = max(time_comp);
                 time_all(k-Tini+1) = time_temp1;
                 if (time_temp1 > time_cpu_max)
@@ -250,6 +244,7 @@ for k = Tini:total_time_step-1
                         pr = 1;
                     end
                 end
+                time_temp1 = max(time_comp);
                 time_all(k-Tini+1) = time_temp1;
                 if (time_temp1 > time_cpu_max)
                     time_cpu_max = time_temp1;
