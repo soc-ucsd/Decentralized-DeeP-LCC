@@ -31,7 +31,7 @@ The code requires the installation of [Mosek](https://www.mosek.com/)
 
 ## Instruction
 Files `main_sin_brake_simulation.m` and `main_nedc_simulation.m` are used to simulate three different scenarios(sinusoidal pertubation, NEDC, Braking) and controllers with different formulation and disturbance estimation methods are in the folder `_fcn/Decentralized_DeeP_LCC`.
-Currently, `main_sin_brake_simulation.m` and `main_nedc_simulation.m` are ready to run for reproducing results in our paper(add paper link).To use it for the mixed traffic system with different formulations, please:
+Currently, `main_sin_brake_simulation.m` and `main_nedc_simulation.m` are ready to run for reproducing results in our paper.To use it for the mixed traffic system with different formulations, please:
 
 Note: _Check the variable `ID` in each file used to make sure it corresponds to your formulation_
 1. Define and generate parameters for HDVs via `data_generation/data_hdvParameter`;
